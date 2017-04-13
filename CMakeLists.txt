@@ -687,7 +687,12 @@ if (BUILD_TESTING)
 
 	### win32_ordinal_test
 
-	# TODO
+	if (WIN32 AND BUILD_SHARED_LIBS)
+		set (win32_ordinal_test_SOURCES tests/win32_ordinal_test.c)
+		add_executable (win32_ordinal_test ${win32_ordinal_test_SOURCES})
+		target_link_libraries (win32_ordinal_test PRIVATE ${SNDFILE_TARGET} test_utils)
+		add_test (win32_ordinal_test win32_ordinal_test)
+	endif ()
 
 	### cpp_test
 
