@@ -271,7 +271,12 @@ psf_fseek (SF_PRIVATE *psf, sf_count_t offset, int whence)
 
 		case SEEK_END :
 				if (psf->file.mode == SFM_WRITE)
-				{	new_position = lseek (psf->file.filedes, offset, whence) ;
+				{
+#ifdef _WIN32
+					new_position = _lseeki64 (psf->file.filedes, offset, whence);
+#else
+					new_position = lseek (psf->file.filedes, offset, whence) ;
+#endif
 
 					if (new_position < 0)
 						psf_log_syserr (psf, errno) ;
@@ -284,7 +289,11 @@ psf_fseek (SF_PRIVATE *psf, sf_count_t offset, int whence)
 				** get the offset wrt the start of file.
 				*/
 				whence = SEEK_SET ;
+#ifdef _WIN32
+				offset = _lseeki64 (psf->file.filedes, 0, SEEK_END) + offset;
+#else
 				offset = lseek (psf->file.filedes, 0, SEEK_END) + offset ;
+#endif
 				break ;
 
 		case SEEK_CUR :
@@ -407,7 +416,11 @@ psf_ftell (SF_PRIVATE *psf)
 	if (psf->is_pipe)
 		return psf->pipeoffset ;
 
+#ifdef _WIN32
+	pos = _lseeki64 (psf->file.filedes, 0, SEEK_CUR);
+#else
 	pos = lseek (psf->file.filedes, 0, SEEK_CUR) ;
+#endif
 
 	if (pos == ((sf_count_t) -1))
 	{	psf_log_syserr (psf, errno) ;
@@ -457,7 +470,9 @@ psf_fgets (char *buffer, sf_count_t bufsize, SF_PRIVATE *psf)
 
 int
 psf_is_pipe (SF_PRIVATE *psf)
-{	struct stat statbuf ;
+{
+#ifndef _WIN32
+	struct stat statbuf ;
 
 	if (psf->virtual_io)
 		return SF_FALSE ;
@@ -470,7 +485,7 @@ psf_is_pipe (SF_PRIVATE *psf)
 
 	if (S_ISFIFO (statbuf.st_mode) || S_ISSOCK (statbuf.st_mode))
 		return SF_TRUE ;
-
+#endif
 	return SF_FALSE ;
 } /* psf_is_pipe */
 
@@ -505,7 +520,11 @@ psf_ftruncate (SF_PRIVATE *psf, sf_count_t len)
 	if ((sizeof (off_t) < sizeof (sf_count_t)) && len > 0x7FFFFFFF)
 		return -1 ;
 
+#ifdef _WIN32
+	retval = _chsize_s (psf->file.filedes, len);
+#else
 	retval = ftruncate (psf->file.filedes, len) ;
+#endif
 
 	if (retval == -1)
 		psf_log_syserr (psf, errno) ;
@@ -594,8 +613,10 @@ psf_log_syserr (SF_PRIVATE *psf, int error)
 void
 psf_fsync (SF_PRIVATE *psf)
 {
-#if HAVE_FSYNC
 	if (psf->file.mode == SFM_WRITE || psf->file.mode == SFM_RDWR)
+#ifdef _WIN32
+		_commit (psf->file.filedes);
+#elif HAVE_FSYNC
 		fsync (psf->file.filedes) ;
 #else
 	psf = NULL ;

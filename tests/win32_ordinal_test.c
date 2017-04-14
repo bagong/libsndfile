@@ -31,7 +31,7 @@
 
 #include <string.h>
 #include <fcntl.h>
-#include <dirent.h>
+#include <direct.h>
 #include <sys/types.h>
 
 #include "utils.h"

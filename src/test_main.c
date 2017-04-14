@@ -20,7 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#if defined (HAVE_SYS_TYPES) && (HAVE_SYS_TYPES == 1)
+#if defined (HAVE_SYS_TYPES_H) && (HAVE_SYS_TYPES_H == 1)
 #include <sys/types.h>
 #endif
 #include <string.h>
@@ -35,10 +35,12 @@ test_file_offsets_are_64_bit (void)
 	print_test_name ("File offsets are 64 bit") ;
 
 	// The Windows specific code path uses the 64 bit file I/O APIs.
-	if (! USE_WINDOWS_API && sizeof (off_t) != 8)
+#ifndef _WIN32
+	if ( sizeof (off_t) != 8)
 	{	printf ("\n\nError : sizeof (off_t) is %zd (should be 8).\n\n", sizeof (off_t)) ;
 		exit (1) ;
 		} ;
+#endif
 
 	puts ("ok") ;
 } /* test_file_offsets_are_64_bit */

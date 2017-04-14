@@ -335,6 +335,10 @@ typedef struct
 		sfwchar_t	wc [SF_FILENAME_LEN / 4] ;
 	} name ;
 
+#ifdef _WIN32
+	int				use_wchar;
+#endif
+
 #if USE_WINDOWS_API
 	/*
 	**	These fields can only be used in src/file_io.c.
@@ -342,7 +346,6 @@ typedef struct
 	*/
 	void 			*handle, *hsaved ;
 
-	int				use_wchar ;
 #else
 	/* These fields can only be used in src/file_io.c. */
 	int 			filedes, savedes ;

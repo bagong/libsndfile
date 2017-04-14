@@ -565,6 +565,8 @@ if (BUILD_TESTING)
 
 	add_executable (test_main ${test_main_SOURCES})
 	target_link_libraries (test_main ${SNDFILE_STATIC_TARGET})
+	target_include_directories (test_main PRIVATE ${CMAKE_SOURCE_DIR}/src/ ${CMAKE_BINARY_DIR}/src)
+	target_compile_definitions (test_main PRIVATE _USE_MATH_DEFINES)
 	add_test (test_main test_main)
 
 	### sfversion_test
